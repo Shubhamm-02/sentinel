@@ -18,6 +18,8 @@ export const servers: Server[] = [
 export class ToolHub {
   private clients = new Map<string, Client>();
   readonly defs: ToolDef[] = [];
+  /** Tools the MCP server marks as read-only (annotations.readOnlyHint). */
+  readonly readOnly = new Set<string>();
 
   async connect(): Promise<void> {
     for (const { mcp, url } of servers) {
@@ -31,10 +33,9 @@ export class ToolHub {
       const { tools } = await client.listTools();
       for (const t of tools) {
         const { $schema: _ignored, ...parameters } = t.inputSchema as Record<string, unknown>;
-        this.defs.push({
-          type: 'function',
-          function: { name: `${mcp}__${t.name}`, description: t.description, parameters },
-        });
+        const name = `${mcp}__${t.name}`;
+        this.defs.push({ type: 'function', function: { name, description: t.description, parameters } });
+        if (t.annotations?.readOnlyHint) this.readOnly.add(name);
       }
     }
   }

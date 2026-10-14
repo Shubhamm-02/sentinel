@@ -18,17 +18,27 @@ export type AgentEvent =
 const MAX_STEPS = 10;
 
 const PLANNER_PROMPT = `You are the planning module of a personal finance & inbox assistant.
-Given the user's request and the list of available tools, decide which tools are needed to fulfil it.
-You have NOT seen any inbox or account data yet. Include only tools the user's request actually requires.
+Given the user's request and the available tools, declare every tool the task will need. This plan is signed
+and enforced: any tool you leave out will be refused later, and any tool you add widens what the agent may do.
+You have NOT seen any inbox or account data yet, so:
+- include every [read] tool needed to find information the task depends on (e.g. listing AND reading emails to
+  find a bill's amount, listing payees, checking the balance before paying);
+- include an [action] tool ONLY if the user's own words ask for that kind of action.
 Respond with JSON only: {"goal": "<one-sentence goal>", "tools": ["<tool name>", ...]}`;
 
 const EXECUTOR_PROMPT = `You are Sentinel, a personal assistant with tools for the user's email inbox and bank account.
 Today is ${new Date().toISOString().slice(0, 10)}. Use the tools to complete the user's request.
-Every tool call is checked by ArmorIQ, a security layer. If a call comes back BLOCKED or HELD, do not retry it;
-tell the user what was stopped and why. Your final answer is spoken aloud, so keep it to 2-4 short sentences.`;
+Every tool call is checked by ArmorIQ, a security layer. If a call comes back BLOCKED or HELD, do not retry it
+and do not offer or attempt another way to achieve the same result; tell the user what was stopped and why. Only say an action happened if a tool result in this conversation confirms it.
+Your final answer is spoken aloud, so keep it to 2-4 short sentences.`;
 
 async function plan(prompt: string, hub: ToolHub): Promise<{ goal: string; tools: string[] }> {
-  const catalog = hub.defs.map((d) => `- ${d.function.name}: ${d.function.description ?? ''}`).join('\n');
+  const catalog = hub.defs
+    .map((d) => {
+      const kind = hub.readOnly.has(d.function.name) ? '[read]' : '[action]';
+      return `- ${d.function.name} ${kind}: ${d.function.description ?? ''}`;
+    })
+    .join('\n');
   const msg = await chat({
     json: true,
     temperature: 0,

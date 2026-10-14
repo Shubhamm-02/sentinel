@@ -21,7 +21,7 @@ export const config = {
   llm: {
     baseUrl: (process.env.LLM_BASE_URL || 'https://api.groq.com/openai/v1').replace(/\/$/, ''),
     apiKey: process.env.LLM_API_KEY || '',
-    model: process.env.LLM_MODEL || 'llama-3.3-70b-versatile',
+    model: process.env.LLM_MODEL || 'openai/gpt-oss-120b',
   },
 
   elevenlabs: {
