@@ -24,7 +24,16 @@ The sandbox inbox holds a real electricity bill and two scams. Each scenario is 
 
 In our test runs the model fell for the landlord scam every time. ArmorIQ's verdicts are deterministic; the model's wording isn't. Blocked actions leave the sandbox ledger untouched, and the UI shows that from the server's real state.
 
-<!-- Screenshots: the blocked $900 transfer in the UI, and the same decision on the ArmorIQ dashboard. -->
+![Scenario 2: the $42.18 bill is paid, and ArmorIQ blocks the $900 transfer to the fake landlord's new account](docs/screenshots/scenario-2-fraud-blocked.png)
+<sub>Scenario 2, from a real run against ArmorIQ: every legitimate call allowed, the $900 external transfer blocked as `tool-not-in-plan`, and the ledger shows only the $42.18 bill.</sub>
+
+<details>
+<summary>Scenario 3: forwarding the bank statement, blocked by policy</summary>
+
+![Scenario 3: forward_email is blocked with tool_denied by the sentinel-inbox-guard policy](docs/screenshots/scenario-3-data-leak-blocked.png)
+</details>
+
+<!-- ArmorIQ dashboard screenshot: add the same decisions as seen on platform.armoriq.ai. -->
 
 ## How it works
 
