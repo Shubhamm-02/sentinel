@@ -15,7 +15,8 @@
     "web": "node --env-file-if-exists=.env --import tsx src/server.ts",
     "agent": "node --env-file-if-exists=.env --import tsx src/cli.ts",
     "reset": "node --import tsx src/mcp/reset.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "fonts": "node scripts/fetch-fonts.mjs"
   },
   "dependencies": {
     "@armoriq/sdk": "^0.6.10",

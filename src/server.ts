@@ -6,7 +6,14 @@ import { load, reset } from './mcp/store.ts';
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.resolve(process.cwd(), 'public')));
+app.use(
+  express.static(path.resolve(process.cwd(), 'public'), {
+    setHeaders: (res, filePath) => {
+      // Font file names carry a content hash (scripts/fetch-fonts.mjs), so browsers can keep them for good.
+      if (filePath.endsWith('.woff2')) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    },
+  }),
+);
 
 app.get('/api/info', (_req, res) => {
   res.json({
