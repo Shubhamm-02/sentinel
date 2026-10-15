@@ -38,3 +38,8 @@ export function serveMcp(name: string, port: number, build: () => McpServer): vo
 export function text(value: unknown) {
   return { content: [{ type: 'text' as const, text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }] };
 }
+
+/** A tool-level failure: the call was valid but the server refused to do it (MCP `isError`). */
+export function refuse(message: string) {
+  return { ...text(message), isError: true };
+}

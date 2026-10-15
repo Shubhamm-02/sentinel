@@ -11,7 +11,16 @@ import { ToolHub } from './tools.ts';
 export type AgentEvent =
   | { type: 'status'; text: string }
   | { type: 'plan'; goal: string; tools: string[]; receipt: PlanReceipt }
-  | { type: 'tool'; id: string; name: string; args: Record<string, unknown>; verdict: Verdict; result?: string }
+  | {
+      type: 'tool';
+      id: string;
+      name: string;
+      args: Record<string, unknown>;
+      verdict: Verdict;
+      result?: string;
+      /** ArmorIQ allowed the call, but the MCP server refused or failed to do it. */
+      failed?: boolean;
+    }
   | { type: 'answer'; text: string }
   | { type: 'error'; message: string };
 
@@ -96,21 +105,21 @@ export async function runAgent(prompt: string, emit: (e: AgentEvent) => void): P
         const args = parseArgs(tc.function.arguments);
         const verdict = await guard.check(name, args);
         let result: string;
+        let failed = false;
         if (verdict.allowed) {
           const started = Date.now();
-          let success = true;
           try {
-            result = await hub.call(name, args);
+            ({ text: result, isError: failed } = await hub.call(name, args));
           } catch (err) {
-            success = false;
+            failed = true;
             result = `Tool error: ${(err as Error).message}`;
           }
-          await guard.report(name, args, result, Date.now() - started, success);
+          await guard.report(name, args, result, Date.now() - started, !failed);
         } else {
           const label = verdict.action === 'hold' ? 'HELD for human approval' : 'BLOCKED';
           result = `${label} by ArmorIQ: ${verdict.reason ?? 'policy violation'}`;
         }
-        emit({ type: 'tool', id: tc.id, name, args, verdict, result });
+        emit({ type: 'tool', id: tc.id, name, args, verdict, result, failed });
         messages.push({ role: 'tool', tool_call_id: tc.id, content: result });
       }
     }

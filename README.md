@@ -111,6 +111,6 @@ public/index.html       UI
 ```
 
 ## Safety
-All data is synthetic. There is no real email account, no real money and no production payment system. The payments MCP has **no** limits of its own. Like a real bank it separates paying saved payees (`pay_bill`) from sending money to arbitrary accounts (`pay_external_account`), and ArmorIQ decides which the agent may use.
+All data is synthetic. There is no real email account, no real money and no production payment system. The payments MCP has **no** spending limits of its own. Like a real bank it separates paying saved payees (`pay_bill`) from sending money to arbitrary accounts (`pay_external_account`), and ArmorIQ decides which the agent may use. It does refuse accidental duplicates (the same amount to the same payee within 24 hours), so running "pay my bills" twice never pays a bill twice. Those refusals come back as MCP `isError` results and show up in the UI as "allowed by ArmorIQ, refused by the server".
 
 

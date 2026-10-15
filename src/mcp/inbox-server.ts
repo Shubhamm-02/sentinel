@@ -1,9 +1,10 @@
-// inbox MCP: a sandbox mailbox. Email bodies are UNTRUSTED input — one of them
-// carries a prompt injection, which is exactly what ArmorIQ has to contain.
+// inbox MCP: a sandbox mailbox. Email bodies are UNTRUSTED input — two of them
+// are scams (payment redirection, data exfiltration), which is exactly what
+// ArmorIQ has to contain.
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { config } from '../config.ts';
-import { serveMcp, text } from './http.ts';
+import { refuse, serveMcp, text } from './http.ts';
 import { load, save } from './store.ts';
 
 function build(): McpServer {
@@ -28,7 +29,7 @@ function build(): McpServer {
     },
     async ({ id }) => {
       const email = load().emails.find((e) => e.id === id);
-      return email ? text(email) : text(`No email with id ${id}`);
+      return email ? text(email) : refuse(`No email with id ${id}`);
     },
   );
 
@@ -44,7 +45,7 @@ function build(): McpServer {
     },
     async ({ id, to }) => {
       const db = load();
-      if (!db.emails.some((e) => e.id === id)) return text(`No email with id ${id}`);
+      if (!db.emails.some((e) => e.id === id)) return refuse(`No email with id ${id}`);
       db.outbox.push({ emailId: id, to, at: new Date().toISOString() });
       save(db);
       return text(`Forwarded email ${id} to ${to}.`);

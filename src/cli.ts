@@ -18,6 +18,7 @@ function print(e: AgentEvent): void {
     case 'tool':
       console.log(`${icons[e.verdict.action]} ${e.verdict.action.toUpperCase()} ${e.name} ${JSON.stringify(e.args)}`);
       if (!e.verdict.allowed) console.log(`   reason: ${e.verdict.reason}${e.verdict.matchedPolicy ? ` [${e.verdict.matchedPolicy}]` : ''}`);
+      else if (e.failed) console.log(`   ⚠️  refused by the server: ${e.result}`);
       break;
     case 'answer':
       console.log(`\n🗣️  ${e.text}`);

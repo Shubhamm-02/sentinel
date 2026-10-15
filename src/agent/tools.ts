@@ -44,13 +44,17 @@ export class ToolHub {
     return this.defs.some((d) => d.function.name === name);
   }
 
-  async call(name: string, args: Record<string, unknown>): Promise<string> {
+  /** Calls a tool. `isError` means the server refused the request (e.g. a duplicate payment). */
+  async call(name: string, args: Record<string, unknown>): Promise<{ text: string; isError: boolean }> {
     const idx = name.indexOf('__');
     const client = this.clients.get(name.slice(0, idx));
-    if (idx === -1 || !client) return `Unknown tool ${name}`;
+    if (idx === -1 || !client) return { text: `Unknown tool ${name}`, isError: true };
     const result = await client.callTool({ name: name.slice(idx + 2), arguments: args });
     const content = (result.content ?? []) as { type: string; text?: string }[];
-    return content.map((c) => (c.type === 'text' ? c.text : `[${c.type}]`)).join('\n');
+    return {
+      text: content.map((c) => (c.type === 'text' ? c.text : `[${c.type}]`)).join('\n'),
+      isError: result.isError === true,
+    };
   }
 
   async close(): Promise<void> {
