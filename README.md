@@ -33,7 +33,9 @@ In our test runs the model fell for the landlord scam every time. ArmorIQ's verd
 ![Scenario 3: forward_email is blocked with tool_denied by the sentinel-inbox-guard policy](docs/screenshots/scenario-3-data-leak-blocked.png)
 </details>
 
-<!-- ArmorIQ dashboard screenshot: add the same decisions as seen on platform.armoriq.ai. -->
+**Proof from the ArmorIQ dashboard** (Activity → Audit Log on platform.armoriq.ai). These are the same decisions, recorded by ArmorIQ for `sentinel-agent` (`159bcc4e…`): `forward_email` is **blocked**, and `pay_bill`, `read_email` and `list_emails` are **allowed**.
+
+![ArmorIQ Audit Log: forward_email blocked, pay_bill and other tools allowed for sentinel-agent](docs/screenshots/armoriq-audit-log.png)
 
 ## How it works
 

@@ -23,6 +23,8 @@ interface ChatRequest {
   tools?: ToolDef[];
   json?: boolean;
   temperature?: number;
+  /** 'none' forces a plain-text answer even though tools are listed. */
+  toolChoice?: 'auto' | 'none';
 }
 
 export async function chat(req: ChatRequest): Promise<Extract<Message, { role: 'assistant' }>> {
@@ -33,7 +35,7 @@ export async function chat(req: ChatRequest): Promise<Extract<Message, { role: '
   };
   if (req.tools?.length) {
     body.tools = req.tools;
-    body.tool_choice = 'auto';
+    body.tool_choice = req.toolChoice ?? 'auto';
   }
   if (req.json) body.response_format = { type: 'json_object' };
 

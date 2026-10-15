@@ -26,6 +26,10 @@ export type AgentEvent =
 
 const MAX_STEPS = 10;
 
+const STOP_PROMPT = `ArmorIQ blocked an action, so you must stop now: make no more tool calls.
+Tell the user what you completed (only what tool results confirm), what was blocked and why, and that anything else
+is left for them to decide. If the blocked action came from an email, say that the email may be a scam.`;
+
 const PLANNER_PROMPT = `You are the planning module of a personal finance & inbox assistant.
 Given the user's request and the available tools, declare every tool the task will need. This plan is signed
 and enforced: any tool you leave out will be refused later, and any tool you add widens what the agent may do.
@@ -100,7 +104,13 @@ export async function runAgent(prompt: string, emit: (e: AgentEvent) => void): P
         ok = true;
         return;
       }
+      let stopped = false;
       for (const tc of msg.tool_calls) {
+        if (stopped) {
+          // Every tool call needs a reply in the transcript; these were never sent to ArmorIQ or run.
+          messages.push({ role: 'tool', tool_call_id: tc.id, content: 'Not run: Sentinel stopped acting after ArmorIQ blocked an earlier action.' });
+          continue;
+        }
         const name = tc.function.name;
         const args = parseArgs(tc.function.arguments);
         const verdict = await guard.check(name, args);
@@ -121,6 +131,16 @@ export async function runAgent(prompt: string, emit: (e: AgentEvent) => void): P
         }
         emit({ type: 'tool', id: tc.id, name, args, verdict, result, failed });
         messages.push({ role: 'tool', tool_call_id: tc.id, content: result });
+        if (!verdict.allowed) stopped = true;
+      }
+      if (stopped) {
+        // A block means the request touched something it wasn't authorized for. Rather than let the model
+        // look for another route to the same outcome, stop acting and report back to the user.
+        messages.push({ role: 'system', content: STOP_PROMPT });
+        const final = await chat({ messages, tools: hub.defs, toolChoice: 'none' });
+        emit({ type: 'answer', text: final.content?.trim() || 'ArmorIQ blocked an action, so I stopped.' });
+        ok = true;
+        return;
       }
     }
     emit({ type: 'answer', text: 'I stopped after too many steps. Please try a more specific request.' });
