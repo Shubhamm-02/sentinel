@@ -26,7 +26,7 @@ export const config = {
 
   elevenlabs: {
     apiKey: process.env.ELEVENLABS_API_KEY || '',
-    voiceId: process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
+    voiceId: process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL',
     modelId: process.env.ELEVENLABS_MODEL_ID || 'eleven_flash_v2_5',
   },
 };
