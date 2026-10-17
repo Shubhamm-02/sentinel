@@ -1,0 +1,27 @@
+# Render blueprint: one always-on web service that runs the UI and both MCP servers (npm run dev).
+# Secrets marked `sync: false` are entered in the Render dashboard, never committed.
+services:
+  - type: web
+    name: sentinel
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run dev
+    healthCheckPath: /api/info
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: ARMORIQ_API_KEY
+        sync: false
+      - key: USER_ID
+        sync: false
+      - key: AGENT_ID
+        sync: false
+      - key: ARMORIQ_MODE
+        value: sdk
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: openai/gpt-oss-120b
